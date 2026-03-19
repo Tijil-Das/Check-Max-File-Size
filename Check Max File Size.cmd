@@ -33,33 +33,38 @@ if "%MAX_FILE%"=="" (
     exit /b 0
 )
 
-:: --- Determine unit ---
+:: --- Determine unit by digit count (avoids 32-bit overflow in set /a) ---
+:: TB >= 13 digits, GB >= 10 digits, MB >= 7 digits, KB >= 4 digits
 set SIZE=!MAX_SIZE!
 set UNIT=B
-set DIVISOR=1
 
-if !SIZE! geq 1099511627776 (
+set LEN=0
+set TEMP=!SIZE!
+:countloop
+if "!TEMP!"=="" goto donecounting
+set TEMP=!TEMP:~1!
+set /a LEN+=1
+goto countloop
+:donecounting
+
+if !LEN! geq 13 (
     set UNIT=TB
-    set DIVISOR=1099511627776
-) else if !SIZE! geq 1073741824 (
+) else if !LEN! geq 10 (
     set UNIT=GB
-    set DIVISOR=1073741824
-) else if !SIZE! geq 1048576 (
+) else if !LEN! geq 7 (
     set UNIT=MB
-    set DIVISOR=1048576
-) else if !SIZE! geq 1024 (
+) else if !LEN! geq 4 (
     set UNIT=KB
-    set DIVISOR=1024
 )
 
-:: --- Compute whole and decimal parts ---
+:: --- Use PowerShell for safe floating point division ---
 if "!UNIT!"=="B" (
     set DISPLAY=!SIZE! B
 ) else (
-    set /a WHOLE=!SIZE! / !DIVISOR!
-    set /a DEC=(!SIZE! * 100 / !DIVISOR!) %% 100
-    if !DEC! lss 10 set DEC=0!DEC!
-    set DISPLAY=!WHOLE!.!DEC! !UNIT!
+    for /f "delims=" %%R in ('powershell -nologo -noprofile -command ^
+        "switch ('!UNIT!') { 'KB' {$d=1KB} 'MB' {$d=1MB} 'GB' {$d=1GB} 'TB' {$d=1TB} }; '{0:N2} !UNIT!' -f ([double]!SIZE! / $d)"') do (
+        set DISPLAY=%%R
+    )
 )
 
 echo.
