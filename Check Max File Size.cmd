@@ -28,9 +28,10 @@ for /r "%TARGET_DIR%" %%F in (*) do (
 if "%MAX_FILE%"=="" (
     echo No files found in "%TARGET_DIR%".
 ) else (
+    set /a MAX_SIZE_MB=%MAX_SIZE% / 1048576
     echo.
     echo  Largest File : %MAX_FILE%
-    echo  Size         : %MAX_SIZE% bytes
+    echo  Size         : %MAX_SIZE% bytes  (!MAX_SIZE_MB! MB^)
 )
 
 echo.
