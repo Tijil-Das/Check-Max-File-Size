@@ -1,4 +1,4 @@
-# 📁 max-file-size
+# 📁 Max file size
 
 A lightweight Windows batch script that finds and displays the largest file in any directory — recursively.
 
